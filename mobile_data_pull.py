@@ -4,9 +4,7 @@ from settings import * #settings.py contains a dictionary storing my personal re
 
 DEBUG=0		#set to 1 for increased verbosity
 
-QUERY_STRING="""
-REDACTED
-"""
+QUERY_STRING='select user data sql here'
 
 
 con=psycopg2.connect(dbname=settings['database'],host=settings['host'], port=settings['port'], user=settings['user'], password=settings['password'])
