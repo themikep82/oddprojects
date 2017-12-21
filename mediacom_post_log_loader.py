@@ -5,7 +5,7 @@ import datetime
 import psycopg2
 import sys
 
-FILE_TO_READ='fd-adspots-raw.csv'
+FILE_TO_READ='adspots-raw.csv'
 DEBUG=0
 
 con=psycopg2.connect(dbname=settings['database'],host=settings['host'], port=settings['port'], user=settings['user'], password=settings['password'])
@@ -16,7 +16,7 @@ def fillTable():
 
 
 	rawFile = open(FILE_TO_READ, 'r')
-	readyFile= open('fd-adspots-ready.csv', 'w')
+	readyFile= open('adspots-ready.csv', 'w')
 	
 	#header row
 	#Station 2,Date,Time,Secs, Cost ,Audience,Program,Feed,Creative,Fix or Flex,Market 2
@@ -52,24 +52,24 @@ def fillTable():
 			
 	readyFile.close()	
 	
-	S3upload(readyFile.name, "/tv_ad_data/", "fd-analytics-sandbox")	
+	S3upload(readyFile.name, "/tv_ad_data/", "analytics")	
 	
 	initTable()
 
-	executeSQL("COPY sandbox.marketing_tv_ad_data FROM 's3://fd-analytics-sandbox/tv_ad_data/fd-adspots-ready.csv' CREDENTIALS 'aws_access_key_id=" + settings["AWS_Key"] + ";aws_secret_access_key=" + settings["AWS_Secret"] + "' CSV;")
+	executeSQL("COPY marketing_tv_ad_data FROM 's3://analytics/tv_ad_data/adspots-ready.csv' CREDENTIALS 'aws_access_key_id=" + settings["AWS_Key"] + ";aws_secret_access_key=" + settings["AWS_Secret"] + "' CSV;")
 	
-	#executeSQL("UPDATE sandbox.marketing_tv_ad_data SET date_aired=date_aired - INTERVAL '4 hours'")
+	executeSQL("UPDATE marketing_tv_ad_data SET date_aired=date_aired - INTERVAL '4 hours'")
 	
 	cur.close()
 	con.close()
 		
 def initTable():
 
-	executeSQL('DROP TABLE IF EXISTS sandbox.marketing_tv_ad_data;')
+	executeSQL('DROP TABLE IF EXISTS marketing_tv_ad_data;')
 	
-	executeSQL('CREATE TABLE IF NOT EXISTS sandbox.marketing_tv_ad_data (station VARCHAR(256), date_aired TIMESTAMP, secs INTEGER, cost NUMERIC (20,10), audience NUMERIC(20,10), program VARCHAR(256), feed VARCHAR(256), creative VARCHAR(50), fix_or_flex VARCHAR(50), market VARCHAR(50), agency VARCHAR(50)) DISTKEY(creative) SORTKEY(date_aired);')
+	executeSQL('CREATE TABLE IF NOT EXISTS marketing_tv_ad_data (station VARCHAR(256), date_aired TIMESTAMP, secs INTEGER, cost NUMERIC (20,10), audience NUMERIC(20,10), program VARCHAR(256), feed VARCHAR(256), creative VARCHAR(50), fix_or_flex VARCHAR(50), market VARCHAR(50), agency VARCHAR(50)) DISTKEY(creative) SORTKEY(date_aired);')
 
-	executeSQL('GRANT SELECT ON sandbox.marketing_tv_ad_data TO GROUP base_user_group;')
+	executeSQL('GRANT SELECT ON marketing_tv_ad_data TO GROUP base_user_group;')
 	
 def executeSQL(query):
 	#cur and con must exist as open psycopg2q redshift connection prior to calling this function
