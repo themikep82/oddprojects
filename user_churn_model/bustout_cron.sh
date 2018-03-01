@@ -1,0 +1,1 @@
+python ../../home/hadoop/user_churn/getpreds.py | tee log.txt
